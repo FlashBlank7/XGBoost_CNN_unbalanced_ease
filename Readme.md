@@ -1,8 +1,123 @@
-# Readme
+
+# README
+
+## Preface
+
+Due to a lack of proper documentation during the initial development, maintaining this project now is quite challenging (mostly because I'm lazy). This repository serves primarily as an archive. The following README content consists of notes recorded during the development process.
+
+Below is an introduction to the project code:
+* The headings represent the names of each code file.
+* The introduction follows the general execution order of the project.
+
+---
+
+## 1. Depression_process
+
+### I. Module Function
+Processes the training set from the "Depression" dataset to generate **`depression_glove_42B_300d.pkl`**, which is used for training the models in Section 2.
+
+#### Inputs
+* Word vector model (GloVe)
+* Raw training data
+
+#### Outputs
+* Embedding layer parameters
+* Processed training data: **`depression_glove_42B_300d.pkl`**
+
+### II. Steps
+* Merge data from all stages (1-10).
+* **Data Preprocessing**:
+    * Remove punctuation and tokenize words using spaces.
+    * Calculate the length of each article and determine the median length.
+    * Truncate or pad articles to the median length using specific identifiers.
+* Generate a vocabulary dictionary where each word has a unique index.
+* Replace all words in articles with their corresponding indices.
+* Map indices to their respective word vectors using the GloVe model and the generated dictionary.
+* Persist (save) the processed data and mappings.
+
+---
+
+## 2. Article_cnn
+
+### I. Module Function
+Trains and saves a CNN model based on the **`depression_glove_42B_300d.pkl`** data.
+
+#### Inputs
+* **`depression_glove_42B_300d.pkl`** (Embedding parameters and training data)
+
+#### Outputs
+* **`model_cnn.pkl`**: A binary classification model for depression detection (comprising convolutional and linear layers).
+
+### II. Steps
+* Define a custom model as a subclass of `torch.nn.Module`.
+* Load data from **`depression_glove_42B_300d.pkl`**.
+* Train the neural network.
+* Persist the trained model.
+
+---
+
+## 3. Article_cnn_feature
+
+### I. Module Function
+Uses the convolutional layers of the **`model_cnn.pkl`** model to process data and generate a training set for XGBoost.
+
+#### Inputs
+* **`model_cnn.pkl`**
+* Training data from **`depression_glove_42B_300d.pkl`**
+
+#### Outputs
+* **`feature.csv`**, **`labels.csv`**: Training data processed by the convolutional layers.
+
+### II. Steps
+* Load **`model_cnn.pkl`** and **`depression_glove_42B_300d.pkl`**.
+* Extract the network sequence **S** from the beginning up to (and including) the convolutional layers.
+* Process the data through sequence **S** to obtain processed data **D_conv**.
+* Apply Max Pooling to **D_conv** to generate **D_pol** (a 128-dimensional feature vector).
+* Persist the results as **`feature.csv`** and **`labels.csv`**.
+
+---
+
+## 4. XGBoost_training
+
+### I. Module Function
+Trains and evaluates an XGBoost model using the data processed by the CNN layers.
+
+#### Inputs
+* **`feature.csv`**, **`labels.csv`**
+
+#### Outputs
+* None (Results are typically logged or displayed).
+
+### II. Steps
+* Load **`feature.csv`** and **`labels.csv`**.
+* Perform hyperparameter tuning using **Grid Search**.
+* Train the XGBoost model.
+* Evaluate performance.
+
+---
+
+## 4plus. cnn_xgboost_training_pure
+
+### I. Module Function
+Similar to Section 4, this module trains and evaluates XGBoost using the CNN-processed data, but excludes the hyperparameter tuning phase.
+
+#### Inputs
+* **`feature.csv`**, **`labels.csv`**
+
+#### Outputs
+* None.
+
+### II. Steps
+* Load **`feature.csv`** and **`labels.csv`**.
+* Train the XGBoost model directly.
+* Evaluate performance.
+
+  
+# 读我
 
 ## 前言
 
-由于当时编写的时候没有注意写好文档，现在重新维护已经非常困难，此处只做留档处理。剩下的Readme内容是过程中的做的一些记录。
+由于当时编写的时候没有注意写好文档，现在重新维护非常困难（我太懒了），此处只做留档处理。剩下的Readme内容是过程中的做的一些记录。
 
 
 
